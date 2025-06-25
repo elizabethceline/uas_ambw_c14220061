@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../models/mood.dart';
 import '../../services/auth_service.dart';
@@ -32,51 +31,55 @@ class HomeScreen extends HookWidget {
 
       isLoading.value = true;
 
-      final supabaseService = Provider.of<SupabaseService>(
-        context,
-        listen: false,
-      );
+      final supabaseService = Provider.of<SupabaseService>(context, listen: false);
       final authService = Provider.of<AuthService>(context, listen: false);
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
       final user = authService.user;
 
-      if (user != null) {
-        final newEntry = Mood(
-          userId: user.id,
-          mood: selectedMood.value!,
-          note: noteController.text.trim().isNotEmpty
-              ? noteController.text.trim()
-              : null,
-          createdAt: DateTime.now(),
-        );
-
-        try {
-          await supabaseService.addMood(newEntry);
-          selectedMood.value = null;
-          noteController.clear();
-
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Mood saved successfully!'),
-                backgroundColor: Colors.green,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        } catch (e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to save mood: $e'),
-                backgroundColor: Colors.redAccent,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
+      if (user == null) {
+        if (context.mounted) {
+          isLoading.value = false;
         }
+        return;
       }
-      if (context.mounted) {
-        isLoading.value = false;
+
+      final newEntry = Mood(
+        userId: user.id,
+        mood: selectedMood.value!,
+        note: noteController.text.trim().isNotEmpty
+            ? noteController.text.trim()
+            : null,
+        createdAt: DateTime.now(),
+      );
+
+      try {
+        await supabaseService.addMood(newEntry);
+
+        if (!context.mounted) return;
+
+        selectedMood.value = null;
+        noteController.clear();
+
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text('Mood saved successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } catch (e) {
+        if (!context.mounted) return;
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Failed to save mood: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } finally {
+        if (context.mounted) {
+          isLoading.value = false;
+        }
       }
     }
 

@@ -65,7 +65,7 @@ class _MoodCalendarState extends State<MoodCalendar> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  late final Map<DateTime, List<Mood>> _moodsByDay;
+  late Map<DateTime, List<Mood>> _moodsByDay;
 
   @override
   void initState() {
