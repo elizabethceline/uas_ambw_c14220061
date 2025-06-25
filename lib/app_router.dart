@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'main_scaffold.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/get_started_screen.dart';
-import 'screens/home/history_screen.dart';
-import 'screens/home/home_screen.dart';
+import 'screens/features/history_screen.dart';
+import 'screens/features/home_screen.dart';
+import 'screens/features/stats_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/auth_service.dart';
 
@@ -19,9 +21,7 @@ class AppRouter {
 
   late final GoRouter _router = GoRouter(
     refreshListenable: authService,
-
     initialLocation: '/splash',
-
     routes: <RouteBase>[
       GoRoute(
         path: '/splash',
@@ -31,26 +31,46 @@ class AppRouter {
         path: '/get-started',
         builder: (context, state) => const GetStartedScreen(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/signup',
         builder: (context, state) => const SignUpScreen(),
       ),
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const HomeScreen(),
-        routes: [
-          GoRoute(
-            path: 'history',
-            builder: (context, state) => const HistoryScreen(),
+
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return MainScaffold(navigationShell: navigationShell);
+        },
+        branches: <StatefulShellBranch>[
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/',
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/history',
+                builder: (context, state) => const HistoryScreen(),
+              ),
+            ],
+          ),
+
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: '/stats',
+                builder: (context, state) => const StatsScreen(),
+              ),
+            ],
           ),
         ],
       ),
     ],
-
     redirect: (BuildContext context, GoRouterState state) async {
       final loggedIn = authService.isLoggedIn;
       final prefs = await SharedPreferences.getInstance();
@@ -58,20 +78,23 @@ class AppRouter {
 
       final onSplash = state.matchedLocation == '/splash';
       final onGetStarted = state.matchedLocation == '/get-started';
-      final onAuthFlow = state.matchedLocation == '/login' || state.matchedLocation == '/signup';
+      final onAuthFlow =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/signup';
 
       if (isFirstTime && !onGetStarted) {
         return '/get-started';
       }
+
       if (onSplash) {
         return loggedIn ? '/' : '/login';
       }
 
-      if (loggedIn && onAuthFlow) {
+      if (loggedIn && (onAuthFlow || onGetStarted)) {
         return '/';
       }
 
-      if (!loggedIn && !onAuthFlow && !onGetStarted) {
+      if (!loggedIn && !onAuthFlow && !onGetStarted && !onSplash) {
         return '/login';
       }
 

@@ -32,7 +32,10 @@ class HomeScreen extends HookWidget {
 
       isLoading.value = true;
 
-      final supabaseService = Provider.of<SupabaseService>(context, listen: false);
+      final supabaseService = Provider.of<SupabaseService>(
+        context,
+        listen: false,
+      );
       final authService = Provider.of<AuthService>(context, listen: false);
       final user = authService.user;
 
@@ -72,33 +75,13 @@ class HomeScreen extends HookWidget {
           }
         }
       }
-      if(context.mounted) {
+      if (context.mounted) {
         isLoading.value = false;
       }
     }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: const Text('How are you feeling?'),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF212529),
-        elevation: 1,
-        actions: [
-          IconButton(
-            tooltip: 'View History',
-            icon: const Icon(Icons.history),
-            onPressed: () => context.go('/history'),
-          ),
-          IconButton(
-            tooltip: 'Sign Out',
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              Provider.of<AuthService>(context, listen: false).signOut();
-            },
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -123,10 +106,14 @@ class HomeScreen extends HookWidget {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.transparent,
+                      color: isSelected
+                          ? Colors.blue.withOpacity(0.1)
+                          : Colors.transparent,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isSelected ? Colors.blue.shade700 : Colors.grey.shade300,
+                        color: isSelected
+                            ? Colors.blue.shade700
+                            : Colors.grey.shade300,
                         width: isSelected ? 2.5 : 1.5,
                       ),
                     ),
@@ -161,7 +148,11 @@ class HomeScreen extends HookWidget {
             ),
             const SizedBox(height: 30),
             isLoading.value
-                ? Center(child: CircularProgressIndicator(color: Colors.blue.shade700))
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.blue.shade700,
+                    ),
+                  )
                 : ElevatedButton(
                     onPressed: submitMood,
                     style: ElevatedButton.styleFrom(

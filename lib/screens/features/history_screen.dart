@@ -18,22 +18,22 @@ class HistoryScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: const Text('Mood History'),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF212529),
-        elevation: 1,
-      ),
       body: user == null
           ? const Center(child: Text('User not found. Please log in again.'))
           : StreamBuilder<List<Mood>>(
               stream: supabaseService.getMoodHistory(user.id),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator(color: Colors.blue.shade700));
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.blue.shade700,
+                    ),
+                  );
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('An error occurred: ${snapshot.error}'));
+                  return Center(
+                    child: Text('An error occurred: ${snapshot.error}'),
+                  );
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(
@@ -76,6 +76,18 @@ class _MoodCalendarState extends State<MoodCalendar> {
   }
 
   @override
+  void didUpdateWidget(covariant MoodCalendar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.moods != oldWidget.moods) {
+      setState(() {
+        _moodsByDay = _groupMoodsByDay(widget.moods);
+        _selectedMoods.value = _getMoodsForDay(_selectedDay!);
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _selectedMoods.dispose();
     super.dispose();
@@ -84,7 +96,11 @@ class _MoodCalendarState extends State<MoodCalendar> {
   Map<DateTime, List<Mood>> _groupMoodsByDay(List<Mood> moods) {
     Map<DateTime, List<Mood>> data = {};
     for (var mood in moods) {
-      DateTime date = DateTime.utc(mood.createdAt.year, mood.createdAt.month, mood.createdAt.day);
+      DateTime date = DateTime.utc(
+        mood.createdAt.year,
+        mood.createdAt.month,
+        mood.createdAt.day,
+      );
       if (data[date] == null) {
         data[date] = [];
       }
@@ -170,20 +186,34 @@ class _MoodCalendarState extends State<MoodCalendar> {
                   final mood = value[index];
 
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    color: Colors.white,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
                     elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: ListTile(
-                      leading: Text(mood.mood, style: const TextStyle(fontSize: 32)),
+                      leading: Text(
+                        mood.mood,
+                        style: const TextStyle(fontSize: 32),
+                      ),
                       title: Text(
                         mood.note ?? 'No note',
                         style: TextStyle(
-                          fontStyle: mood.note == null ? FontStyle.italic : FontStyle.normal,
-                          color: mood.note == null ? Colors.grey : Colors.black87,
+                          fontStyle: mood.note == null
+                              ? FontStyle.italic
+                              : FontStyle.normal,
+                          color: mood.note == null
+                              ? Colors.black54
+                              : Colors.black87,
                         ),
                       ),
                       subtitle: Text(
-                        '${DateFormat('HH:mm').format(mood.createdAt)} '
+                        '${DateFormat('HH:mm').format(mood.createdAt)} ',
+                        style: const TextStyle(color: Colors.black87),
                       ),
                     ),
                   );
@@ -204,10 +234,7 @@ class _MoodCalendarState extends State<MoodCalendar> {
         color: Colors.white.withOpacity(0.8),
         shape: BoxShape.circle,
       ),
-      child: Text(
-        moodText,
-        style: const TextStyle(fontSize: 12),
-      ),
+      child: Text(moodText, style: const TextStyle(fontSize: 12)),
     );
   }
 }
